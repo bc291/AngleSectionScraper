@@ -2,7 +2,9 @@ import scrapy
 from steel_angle_section.items import AngleSectionItem
 import re
 
+COUNTRY_PREFIX = 'pl'
 SITE_URL = 'http://www.staticstools.eu/'
+UNIT = 'mm'
 
 
 class QuotesSpider(scrapy.Spider):
@@ -10,8 +12,8 @@ class QuotesSpider(scrapy.Spider):
 
     def start_requests(self):
         #response.css('div.row-fluid img::attr(src)').get()
-        self.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-        yield scrapy.Request(url=SITE_URL,
+        
+        yield scrapy.Request(url=SITE_URL + COUNTRY_PREFIX,
                              callback=self.parse)
 
     def parse(self, response):
@@ -27,23 +29,28 @@ class QuotesSpider(scrapy.Spider):
         have_they_not_changed = map(lambda x: 'pl/profile-' in x,
                                 all_cross_sections_links)
 
+        #self.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+        #self.log(have_they_not_changed)
         # if any of this strings does not 
         if not all(have_they_not_changed):
             return
-
+        
         all_cross_sections = [item[11:] for item in all_cross_sections_links]
-        self.log(all_cross_sections)
-        for url in all_cross_sections:
+        #self.log(all_cross_sections)
+        for url in all_cross_sections_links:
             yield scrapy.Request(url=url, callback=self.parse2)
 
-
-        
-
     def parse2(self, response):
-        self.log("DZIALA")
-        return
+        all_categories = response.css('form select.form-control.bottom-space option::attr(value)').extract()
+        all_links = []
+        for category in all_categories:
+            all_links.append(response.url + '/' + category + '/' + UNIT)
 
-        """
+        for link in all_links:
+            yield scrapy.Request(url=link, callback=self.parse3)
+
+    def parse3(self, response):
+     
         DIGITS_RE = re.compile('\d+')
         test = response.css('table.table.table-a td::text').extract()
 
@@ -72,7 +79,7 @@ class QuotesSpider(scrapy.Spider):
         item['pochylenie_glo_osi_bezwl'] = ostateczne[8] + " mm^(2)"
 
         item['masa_na_jednostke_dlug'] = ostateczne[9] + " kg*m^(-1)"
-        
+        """
         item['pole_przekroju']
         
         item['pole_powierzchni_ksztaltownika']
@@ -90,6 +97,7 @@ class QuotesSpider(scrapy.Spider):
         item['promien_bezwzladnosci_wzgledem_centra_scinania']
         item['moment_odsrodkowy']
         
-
-        yield item
         """
+        yield item
+        
+    
