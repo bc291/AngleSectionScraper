@@ -2,19 +2,48 @@ import scrapy
 from steel_angle_section.items import AngleSectionItem
 import re
 
+SITE_URL = 'http://www.staticstools.eu/'
+
 
 class QuotesSpider(scrapy.Spider):
     name = "angle_sections"
 
     def start_requests(self):
         #response.css('div.row-fluid img::attr(src)').get()
-        
-        yield scrapy.Request(url='http://www.staticstools.eu/pl/profile-he/HE300C/', callback=self.parse)
+        self.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+        yield scrapy.Request(url=SITE_URL,
+                             callback=self.parse)
 
     def parse(self, response):
-        self.log("TUTAJ RESPONSE")
-        self.log(response)
+        
+        all_cross_sections_links = response \
+                                            .css('ul.nav-main.dropdown li a::attr(href)') \
+                                            .extract()
 
+        # append site root url
+        all_cross_sections_links = [SITE_URL + item for item in all_cross_sections_links]
+
+        # check if site links are unchanged as 19.08.2018
+        have_they_not_changed = map(lambda x: 'pl/profile-' in x,
+                                all_cross_sections_links)
+
+        # if any of this strings does not 
+        if not all(have_they_not_changed):
+            return
+
+        all_cross_sections = [item[11:] for item in all_cross_sections_links]
+        self.log(all_cross_sections)
+        for url in all_cross_sections:
+            yield scrapy.Request(url=url, callback=self.parse2)
+
+
+        
+
+    def parse2(self, response):
+        self.log("DZIALA")
+        return
+
+        """
         DIGITS_RE = re.compile('\d+')
         test = response.css('table.table.table-a td::text').extract()
 
@@ -43,11 +72,7 @@ class QuotesSpider(scrapy.Spider):
         item['pochylenie_glo_osi_bezwl'] = ostateczne[8] + " mm^(2)"
 
         item['masa_na_jednostke_dlug'] = ostateczne[9] + " kg*m^(-1)"
-        """
-        self.log(item)
-        """
         
-        """
         item['pole_przekroju']
         
         item['pole_powierzchni_ksztaltownika']
@@ -64,6 +89,7 @@ class QuotesSpider(scrapy.Spider):
         item['stala_modulu_przy_skrecaniu']
         item['promien_bezwzladnosci_wzgledem_centra_scinania']
         item['moment_odsrodkowy']
-        """
+        
 
         yield item
+        """
