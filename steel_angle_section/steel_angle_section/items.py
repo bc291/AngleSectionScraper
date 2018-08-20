@@ -4,6 +4,7 @@ import scrapy
 
 
 class AngleSectionItem(scrapy.Item):
+    """
     oznaczenie = scrapy.Field()
     wysokosc_przekroju = scrapy.Field()
     szerokosc_przekroju = scrapy.Field()
@@ -33,5 +34,5 @@ class AngleSectionItem(scrapy.Item):
     stala_modulu_przy_skrecaniu = scrapy.Field()
     promien_bezwzladnosci_wzgledem_centra_scinania = scrapy.Field()
     moment_odsrodkowy = scrapy.Field()
-
+    """
 

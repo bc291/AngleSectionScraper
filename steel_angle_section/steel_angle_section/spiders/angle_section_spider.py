@@ -8,7 +8,12 @@ COUNTRY_PREFIX = 'pl'
 SITE_URL = 'http://www.staticstools.eu/'
 UNIT = 'mm'
 
-
+#data.loc[len(data)]=[data[1].iloc[-1], '']
+#data.drop([1], axis=1, inplace=True)
+#data = pd.DataFrame([i.split(r' ') for i in data[0].map(str)])
+#data.drop([1], axis=1, inplace=True)
+#data.drop(df.head(1).index, inplace=True)
+#df.columns=['symbol', 'value', 'unit']
 class QuotesSpider(scrapy.Spider):
     name = "angle_sections"
 
@@ -49,7 +54,25 @@ class QuotesSpider(scrapy.Spider):
             yield scrapy.Request(url=link, callback=self.parse3)
 
     def parse3(self, response):
-     
+        data = response.xpath("//table").extract()
+        data = pd.read_html(data[0])[0]
+        data.loc[len(data)]=[data[1].iloc[-1], '']
+        data.drop([1], axis=1, inplace=True)
+        data = pd.DataFrame([i.split(r' ') for i in data[0].map(str)])
+        data.drop([1], axis=1, inplace=True)
+        data.drop(data.head(1).index, inplace=True)
+        data.columns = ['symbol', 'value', 'unit']
+
+        item = AngleSectionItem()
+
+
+        symbols = list(data['symbol'])
+        item = generate_item_dynamically(symbols)
+
+        for i in range(len(data)):
+            item[data.iloc[i]['symbol']] = data.iloc[i]['value']
+
+        """
         DIGITS_RE = re.compile('\d+')
         test = response.css('table.table.table-a td::text').extract()
 
@@ -78,7 +101,6 @@ class QuotesSpider(scrapy.Spider):
         item['pochylenie_glo_osi_bezwl'] = ostateczne[8] + " mm^(2)"
 
         item['masa_na_jednostke_dlug'] = ostateczne[9] + " kg*m^(-1)"
-        """
         item['pole_przekroju']
         
         item['pole_powierzchni_ksztaltownika']
@@ -96,7 +118,12 @@ class QuotesSpider(scrapy.Spider):
         item['promien_bezwzladnosci_wzgledem_centra_scinania']
         item['moment_odsrodkowy']
         
+        
         """
         yield item
         
-    
+def generate_item_dynamically(fields):
+    item = scrapy.Item()
+    for field in fields:
+        item.fields[field] = scrapy.Field()
+    return item
