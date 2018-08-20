@@ -29,14 +29,11 @@ class QuotesSpider(scrapy.Spider):
         have_they_not_changed = map(lambda x: 'pl/profile-' in x,
                                 all_cross_sections_links)
 
-        #self.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-        #self.log(have_they_not_changed)
         # if any of this strings does not 
         if not all(have_they_not_changed):
             return
         
-        all_cross_sections = [item[11:] for item in all_cross_sections_links]
-        #self.log(all_cross_sections)
+        #all_cross_sections = [item[11:] for item in all_cross_sections_links]
         for url in all_cross_sections_links:
             yield scrapy.Request(url=url, callback=self.parse2)
 
