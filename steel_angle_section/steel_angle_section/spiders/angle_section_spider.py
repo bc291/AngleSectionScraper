@@ -1,6 +1,8 @@
 import scrapy
 from steel_angle_section.items import AngleSectionItem
 import re
+import pandas as pd
+
 
 COUNTRY_PREFIX = 'pl'
 SITE_URL = 'http://www.staticstools.eu/'
